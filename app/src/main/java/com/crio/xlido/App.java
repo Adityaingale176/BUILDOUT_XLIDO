@@ -10,8 +10,26 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import com.crio.xlido.services.EventService;
+import com.crio.xlido.services.QuestionService;
+import com.crio.xlido.services.UserService;
+import com.crio.xlido.entities.Event;
+import com.crio.xlido.entities.Question;
+import com.crio.xlido.entities.User;
+import com.crio.xlido.repositories.*;
 
 public class App {
+
+    // Initialize repositories
+    private final IUserRepository userRepository = new UserRepository();
+    private final IEventRepository eventRepository = new EventRepository();
+    private final IQuestionRepository questionRepository = new QuestionRepository();
+
+    // Initialize services
+    private final UserService userService = new UserService(userRepository);
+    private final EventService eventService = new EventService(eventRepository, userRepository);
+    private final QuestionService questionService = new QuestionService(eventRepository, userRepository, questionRepository);
+
     public static void main(String[] args) {
 
         // Test your code by ading commands in sample_input/sample_input_one.txt
@@ -53,20 +71,28 @@ public class App {
                     //Execute Services
                     switch(tokens.get(0)){
                         case "CREATE_USER":
+                        CREATE_USER(tokens);
                         break;
                         case "CREATE_EVENT":
+                        CREATE_EVENT(tokens);
                         break;
                         case "DELETE_EVENT":
+                        DELETE_EVENT(tokens);
                         break;
                         case "ADD_QUESTION":
+                        ADD_QUESTION(tokens);
                         break;
                         case "DELETE_QUESTION":
+                        DELETE_QUESTION(tokens);
                         break;
                         case "UPVOTE_QUESTION":
+                        UPVOTE_QUESTION(tokens);
                         break;
                         case "REPLY_QUESTION":
+                        REPLY_QUESTION(tokens);
                         break;
                         case "LIST_QUESTIONS":
+                        LIST_QUESTIONS(tokens);
                         break;
                         default:
                             throw new RuntimeException("INVALID_COMMAND");
@@ -75,5 +101,67 @@ public class App {
                     System.out.println("ERROR: " + e.getMessage());
                 }
         }
+    }
+
+    public void CREATE_USER(List<String> tokens){
+        String email = tokens.get(1);
+        String password = tokens.get(2);
+        User user = userService.CREATE_USER(email, password);
+        System.out.println("User ID: " + user.getUserId());
+    }
+
+    public void CREATE_EVENT(List<String> tokens){
+        String title = tokens.get(1);
+        Long organizerId = Long.parseLong(tokens.get(2));
+        Event event = eventService.CREATE_EVENT(title, organizerId);
+        System.out.println("Event ID: " + event.getEventId());
+    }
+
+    public void DELETE_EVENT(List<String> tokens){
+        Long eventId = Long.parseLong(tokens.get(1));
+        Long userId = Long.parseLong(tokens.get(2));
+        eventService.DELETE_EVENT(eventId, userId);
+        System.out.println("EVENT_DELETED "+ eventId);
+    }
+
+    public void ADD_QUESTION(List<String> tokens){
+        String content = tokens.get(1);
+        Long userId = Long.parseLong(tokens.get(2));
+        Long eventId = Long.parseLong(tokens.get(3));
+        Question question = questionService.ADD_QUESTION(content, userId, eventId);
+        System.out.println("Question ID: "+ question.getQuestionId());
+    }
+
+    public void DELETE_QUESTION(List<String> tokens){
+        Long questionId = Long.parseLong(tokens.get(1));
+        Long userId = Long.parseLong(tokens.get(2));
+        
+        Question question = questionService.DELETE_QUESTION(questionId, userId);
+        System.out.println("QUESTION_DELETED "+ question.getQuestionId());
+    }
+
+    public void UPVOTE_QUESTION(List<String> tokens){
+        Long questionId = Long.parseLong(tokens.get(1));
+        Long userId = Long.parseLong(tokens.get(2));
+        
+        Question question = questionService.UPVOTE_QUESTION(questionId, userId);
+        System.out.println("QUESTION_UPVOTED "+ question.getQuestionId());
+    }
+
+    public void REPLY_QUESTION(List<String> tokens){
+        String content = tokens.get(1);
+        Long questionId = Long.parseLong(tokens.get(2));
+        Long userId = Long.parseLong(tokens.get(3));
+        
+        Question question = questionService.REPLY_QUESTION(content, questionId, userId);
+        System.out.println("REPLY_ADDED");
+    }
+
+    public void LIST_QUESTIONS(List<String> tokens){
+        Long eventId = Long.parseLong(tokens.get(1));
+        String sortBy = tokens.get(2);
+        
+        Question question = questionService.LIST_QUESTIONS(eventId, sortBy);
+        System.out.println("REPLY_ADDED");
     }
 }
