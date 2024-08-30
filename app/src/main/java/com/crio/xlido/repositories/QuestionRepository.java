@@ -72,7 +72,7 @@ public class QuestionRepository implements IQuestionRepository{
                 questionIds.add(entry.getValue());
             }
         }
-        return questionIds;
+        return null;
        
         
     }

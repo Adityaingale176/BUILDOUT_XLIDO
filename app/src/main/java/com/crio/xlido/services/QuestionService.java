@@ -52,7 +52,8 @@ public class QuestionService {
 
     public Question LIST_QUESTIONS(Long eventId, String sortBy) {
         Event event = eventRepository.findById(eventId).orElseThrow(()->new RuntimeException("Event with an id "+eventId+" does not exist"));
-        questionRepository.listQuestions(eventId, sortBy);
+        //questionRepository.listQuestions(eventId, sortBy);
+        return null;
     }
 
 }
