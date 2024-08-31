@@ -1,5 +1,12 @@
 package com.crio.xlido.services;
 
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import com.crio.xlido.entities.Event;
 import com.crio.xlido.entities.Question;
 import com.crio.xlido.entities.User;
@@ -46,14 +53,22 @@ public class QuestionService {
     public Question REPLY_QUESTION(String content, Long questionId, Long userId) {
         User user = userRepository.findById(userId).orElseThrow(()->new RuntimeException("User with an id "+userId+" does not exist"));
         Question question = questionRepository.findById(questionId).orElseThrow(()->new RuntimeException("Question with an id "+questionId+" does not exist"));
-        questionRepository.replyQuestion(questionId, content);
+        questionRepository.replyQuestion(questionId, content, userId);
         return question;
     }
 
-    public Question LIST_QUESTIONS(Long eventId, String sortBy) {
+    public List<Question> LIST_QUESTIONS(Long eventId, String sortBy) {
         Event event = eventRepository.findById(eventId).orElseThrow(()->new RuntimeException("Event with an id "+eventId+" does not exist"));
-        //questionRepository.listQuestions(eventId, sortBy);
-        return null;
+        List <Question> questions = questionRepository.findByEventId(eventId);
+
+        if(questions !=null && !questions.isEmpty()) {
+            if(sortBy.equalsIgnoreCase("POPULAR")) {
+                Collections.sort(questions);
+            }else {
+                Collections.reverse(questions);
+            }
+        }
+        return questions; 
     }
 
 }

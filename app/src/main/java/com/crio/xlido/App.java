@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import com.crio.xlido.services.EventService;
 import com.crio.xlido.services.QuestionService;
 import com.crio.xlido.services.UserService;
@@ -161,7 +162,22 @@ public class App {
         Long eventId = Long.parseLong(tokens.get(1));
         String sortBy = tokens.get(2);
         
-        Question question = questionService.LIST_QUESTIONS(eventId, sortBy);
-        System.out.println("REPLY_ADDED");
+        List<Question> questions = questionService.LIST_QUESTIONS(eventId, sortBy);
+        for (Question question : questions) {
+            System.out.println("Question ID: "+ question.getQuestionId());
+            System.out.println("Content: "+ question.getContent());
+            System.out.println("Votes: "+ questionRepository.getVotesByQuestionId(question.getQuestionId()));
+
+            String reply = questionRepository.getReplyByQuestionID(question.getQuestionId());
+
+            if(reply != null) {
+                Long userId = questionRepository.getReplyUSerByQuestionID(question.getQuestionId());
+
+                System.out.println("Replies:\n  - User " +userId+ ": " +reply + "\n");
+                
+            }else {
+                System.out.println("Replies:\n");
+            }
     }
+}
 }

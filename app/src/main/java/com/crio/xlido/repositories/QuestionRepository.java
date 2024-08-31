@@ -1,5 +1,6 @@
 package com.crio.xlido.repositories;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -8,6 +9,8 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import com.crio.xlido.entities.Question;
+import com.crio.xlido.entities.Reply;
+import com.crio.xlido.entities.Upvote;
 import com.crio.xlido.entities.User;
 
 public class QuestionRepository implements IQuestionRepository{
@@ -16,11 +19,12 @@ public class QuestionRepository implements IQuestionRepository{
      //<UserID, QuestionId>
     private final Map<Long, Long> upvote = new HashMap();
     //<QuestionId, reply>
-    private final Map<Long, String> reply = new HashMap();
+    private final Map<Long, Reply> reply = new HashMap();
     //<QuestionId, Votes>
     private final Map<Long, Long> voteCounter = new HashMap();
     //<EventId, QuestionId>
     private final Map<Long, Long> eventMapper = new HashMap();
+
 
     //<UserID, QuestionId>
 
@@ -53,28 +57,59 @@ public class QuestionRepository implements IQuestionRepository{
         else{
             upvote.put(userId, questionId);
             voteCounter.put(questionId, voteCounter.getOrDefault(questionId, (long) 0)+1);
-        }
-    }
+            Question question = storage.get(questionId);
 
-    @Override
-    public void replyQuestion(Long questionId, String content ) {
-     reply.put(questionId, content);
-    }
-
-
-    @Override
-    public List<Question> listQuestions(List eventId, String sortBy) {
-       
-        // Collect all QuestionId related to the given EventId
-        List<Long> questionIds = new ArrayList<>();
-        for (Map.Entry<Long, Long> entry : eventMapper.entrySet()) {
-            if (Objects.equals(entry.getKey(), eventId)) {
-                questionIds.add(entry.getValue());
+            if (question.getUpvote() == 0L) {
+                question.setUpvote(1L);
+            } else {
+                question.setUpvote(question.getUpvote() + 1L);
             }
         }
-        return null;
-       
-        
     }
-    
+
+    @Override
+    public void replyQuestion(Long questionId, String content, Long userId ) {
+        
+        Reply replyEntity = new Reply(questionId, content, userId);
+        //Reply reply = new Reply(questionId, replyEntity);
+        reply.put(questionId, replyEntity);
+
+    }
+
+    @Override
+    public List<Question> findAll() {
+        return new ArrayList<>(storage.values());
+    }
+
+    @Override
+    public List<Question> findByEventId(Long eventId) {
+        List<Question> questions = findAll();
+        return questions.stream().filter(q -> q.getEventId() == eventId).collect(Collectors.toList());
+    } 
+
+    @Override
+    public Long getVotesByQuestionId(Long questionId){
+        if(voteCounter.get(questionId)!=null){
+            return voteCounter.get(questionId);
+        }
+        else{
+            return 0L;
+        }
+    }
+
+    @Override
+    public String getReplyByQuestionID(Long questionId){
+        if (reply.containsKey(questionId)){
+            return reply.get(questionId).getContent();
+        }
+        else {
+            return null;
+        }
+    }
+
+    @Override
+    public Long getReplyUSerByQuestionID(Long questionId){
+        return reply.get(questionId).getUserId();
+    }
+
 }

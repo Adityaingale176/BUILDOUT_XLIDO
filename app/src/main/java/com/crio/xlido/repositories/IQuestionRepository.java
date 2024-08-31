@@ -14,9 +14,16 @@ public interface IQuestionRepository {
 
     void upvoteQuestion(Long questionId, Long userId);
 
-    void replyQuestion(Long questionId, String content);
+    void replyQuestion(Long questionId, String content, Long userId);
 
-    List<Question> listQuestions(List eventId, String sortBy);
-    
+    public List<Question> findByEventId(Long eventId);
+
+    public List<Question> findAll();
+
+    public Long getVotesByQuestionId(Long questionId);
+
+    public String getReplyByQuestionID(Long questionId);
+
+    public Long getReplyUSerByQuestionID(Long questionId);
 
 }
